@@ -53,7 +53,7 @@ class Predictor(ABC):
 
     def self_test(self):
         try:
-            json.dumps(self(self._test_input))
+            json.dumps(self.predict(self._test_input))
             json.dumps(self.score(self._score_test_input))
         except ValueError:
             return False
@@ -87,10 +87,10 @@ class Predictor(ABC):
                 " Please provide the run_scores-method for your Predictor subclass"
             )
 
-    def predict(self, X: any) -> any:
+    def run_predict(self, X: any) -> any:
         raise NotImplementedError
 
-    def __call__(self, sent: any):
+    def predict(self, sent: any):
         try:
             self._validate_pred_input(sent)
             X = self.convert_prediction_input(sent)
@@ -98,5 +98,5 @@ class Predictor(ABC):
             raise NotImplementedError(
                 " Please provide implementation for your Predictor subclass's convert_prediction_input"
             )
-        res = self.predict(X)
+        res = self.run_predict(X)
         return self.convert_output(res)

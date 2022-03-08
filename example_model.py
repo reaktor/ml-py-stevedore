@@ -20,6 +20,9 @@ class LogReg(Predictor):
     def run_scores(self, X, y):
         return self.model.score(X, y)
 
+    def run_predict(self, X):
+        return self.model.predict(X)
+
     # def main():
 
 
