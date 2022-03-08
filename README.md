@@ -46,7 +46,7 @@ Place the models in one Python module and build a list called `predictors` of yo
 ## Design
 The `Predictor` abstract base class enables quick construction of a derived class that wraps the ML-model. The methods of the base class are crafted to back the generic API. In particular, the user must fill in a couple of methods:
   * conversion of JSON-parsed and validated API input value into the value accepted by the ML model prediction. The input value may be an URL, an array of numbers - the existence of this method makes the package very flexible.
-  * `predict`-method (think of `sklearn`)
+  * `run_predict`-method (think of `sklearn`)
   * conversion of JSON-parsed and validated API input value into the values `X,y` accepted by the ML model scoring. Again, the setting is very flexible.
   * `run_scores`-method
   * conversion of the prediction return value to a readily JSONable type.
