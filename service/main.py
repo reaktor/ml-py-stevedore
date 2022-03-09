@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Any as any
 
 # example_model is the only thing you need to change
-from example_model import predictors
+from model.model import predictors
 
 
 # All test may not be runnable at container generation time
@@ -102,7 +102,7 @@ async def created(model: str):
 
 @app.post("/predict/")
 async def model_predict(argument: JSONWrapper):
-    return select(argument.predictor)(argument.payload)
+    return select(argument.predictor).predict(argument.payload)
 
 
 @app.post("/score/")

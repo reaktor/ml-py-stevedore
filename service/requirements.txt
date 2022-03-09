@@ -3,3 +3,4 @@ uvicorn
 scikit-learn
 numpy
 jsonschema
+pytest==7.0.1
