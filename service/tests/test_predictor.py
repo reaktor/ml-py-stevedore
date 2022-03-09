@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegressionCV
 import numpy as np
 import json
 from jsonschema import validate
-from src.predictor import Predictor
+from predictor import Predictor
 
 
 class LogReg(Predictor):
@@ -29,7 +29,7 @@ class LogReg(Predictor):
 N = 30
 Nf = 3
 X = np.random.randn(N, Nf)
-y = np.random.randn(N) > 0.0
+y = np.random.randn(N) < 0.0
 lr1 = LogisticRegressionCV(fit_intercept=True)
 lr1.fit(X, y)
 test_input = np.random.randn(2, Nf).tolist()
@@ -74,7 +74,7 @@ score_test_input = [{"x": X[ind, :].tolist(), "y": y[ind]} for ind in range(X.sh
 predictors = [
     LogReg(
         lr1,
-        "test_logreg1",
+        "test_logreg3",
         test_input,
         pred_schema,
         score_test_input,
@@ -82,10 +82,19 @@ predictors = [
     ),
     LogReg(
         lr2,
-        "test_logreg2",
+        "test_logreg4",
         test_input,
         pred_schema,
         score_test_input,
         score_schema,
     ),
 ]
+
+
+
+def test_predictor():
+
+    assert predictors[0].self_test()
+    assert predictors[1].self_test()
+
+
