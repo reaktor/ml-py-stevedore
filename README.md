@@ -42,7 +42,7 @@ JSONschemas.
 ## Use instructions
 
 ### Basic requirements
-ml-py-stevedore depends on `Python 3.9` or higher and `podman`.
+ml-py-stevedore depends on `Python 3.9` or higher and `docker` or `podman`.
 
 ### Models
 
