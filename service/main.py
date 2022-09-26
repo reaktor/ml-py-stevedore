@@ -3,7 +3,6 @@ import timeit
 from pydantic import BaseModel
 from typing import Any as any
 
-# example_model is the only thing you need to change
 from model.model import predictors
 
 

@@ -42,11 +42,19 @@ JSONschemas.
 ## Use instructions
 
 ### Basic requirements
+
 ml-py-stevedore depends on `Python 3.9` or higher and `docker` or `podman`.
 
 ### Models
 
-You need to build your models and probably persist them in some manner,
+You can insert your model two ways:
+- Have a separate folder with the model, and mount it to replace the
+  base image `/service/model/` folder, e.g.
+  `$(DC) run -d -p 8000:8000n -v $(pwd)/alternative_model:/service/model`
+- Modify the existing `service/model` folder. This approach gives you
+  ability to modify `requirements.txt` too.
+
+You need to build your models and persist weights in some manner,
 e.g. `HDF5`, `onnx` or such. N.B. Python's `pickle` is not a good
 choice due to compatibility problems between different versions and
 platforms.
@@ -54,14 +62,14 @@ platforms.
 You need to take care of your model's dependencies. You can modify the
 `requirements.txt`-file to add the required dependencies.
 
-Place the models in one Python module and build a list called
-`predictors` of your `Predictor` subclasses' objects. Then introduce
-the name of the module into the import statement at the beginning of
-`source/predictor.py` instead of the `example_model`:
+Place the models in one Python module named `model` and crate a list called
+`predictors` of your `Predictor` subclasses' objects. Your model must
+be importable by the main function as:
+```
+from model.model import predictors
+```
 
-    from example_model import predictors
-
-
+See the example in `service/model/`
 
 ## Design
 
@@ -70,11 +78,16 @@ derived class that wraps the ML-model. The methods of the base class
 are crafted to back the generic API. In particular, the user must fill
 in a couple of methods:
 
-  * conversion of JSON-parsed and validated API input value into the value accepted by the ML model prediction. The input value may be an URL, an array of numbers - the existence of this method makes the package very flexible.
-  * `run_predict`-method (think of `sklearn`)
-  * conversion of JSON-parsed and validated API input value into the values `X,y` accepted by the ML model scoring. Again, the setting is very flexible.
-  * `run_scores`-method
-  * conversion of the prediction return value to a readily JSONable type.
+- conversion of JSON-parsed and validated API input value into the value
+  accepted by the ML model prediction. The input value may be an URL, an
+  array of numbers - the existence of this method makes the package
+  very flexible.
+- `run_predict`-method (think of `sklearn`)
+- conversion of JSON-parsed and validated API input value into the
+  values `X,y` accepted by the ML model scoring. Again, the setting is
+  very flexible.
+- `run_scores`-method
+- conversion of the prediction return value to a readily JSONable type.
 
 To get an idea how any machine learning model can be interfaced with
 the generic API, let's look at the sklearn logistic regressor example
@@ -103,7 +116,7 @@ in `example_model.py`:
 The method `convert_prediction_input` makes sure we are feeding in a
 numpy array. When the conversion methods get called, we already know
 that inputs have been validated againts the initialization-time
-JSONschemas.  `convert_score_input` separates test inputs `X` and
+JSONschemas. `convert_score_input` separates test inputs `X` and
 ground truths `y` from the input. `run_scores` transparently relies on
 the sklearn model's score - but could do a number of KPIs in one
 stroke. Finally, `run_predict` transparently runs the prediction method
@@ -112,3 +125,25 @@ runs instatiation-time tests to prevent junk-serving and input
 validations are run for all requests. Finally, the method
 `convert_output` converts the prediction result into a list - thus
 readily JSONable.
+
+## Testing
+
+### Running and testing the base system.
+
+Build a docker and run test cases with it:
+
+- `make local-build`
+- `make local-run`,  when log is displayed, ctrl-c to break watching log
+- `make local-test-curl`, runs the commands to see service is responding to requests
+- `make local-pytest`, runs tests defined in service/tests/
+
+There is an example "alternative model" in the project structure, that shows how
+to insert your own model in to the system. You can test the predefined
+alternative model with:
+
+- `make local-build`
+- `make local-run-alternative`
+- `make local-test-curl-alternative`
+- `make local-pytest-alternative`, runs tests defined in service/tests/
+  *AND* any test script defined in alternative_model/
+

@@ -34,34 +34,40 @@ local-stop: ## Stop all services
 	$(DC) stop -t 0 $(NAME) || true
 
 local-test-curl: ## Test service with curl
-	curl -f -s -D /dev/stderr http://localhost:8000/health/live ; echo
-	curl -f -s -D /dev/stderr http://localhost:8000/readyz; echo
-	curl -f -s -D /dev/stderr -X GET http://localhost:8000/health/ready/?model=test_logreg1; echo
-	curl -f -s -D /dev/stderr -X GET http://localhost:8000/version/?model=test_logreg1 ; echo
-	curl -f -s -D /dev/stderr http://localhost:8000/docs | head -c 1 | head -c 0 ; echo
-	curl -f -s -D /dev/stderr http://localhost:8000/health/uptime ; echo
+	curl -f -s -D /dev/stderr http://localhost:8000/health/live || echo Failed; echo
+	curl -f -s -D /dev/stderr http://localhost:8000/readyz || echo Failed; echo
+	curl -f -s -D /dev/stderr -X GET http://localhost:8000/health/ready/?model=test_logreg1 || echo Failed; echo
+	curl -f -s -D /dev/stderr -X GET http://localhost:8000/version/?model=test_logreg1 || echo Failed; echo
+	curl -f -s -D /dev/stderr http://localhost:8000/docs >/dev/null || echo Failed; echo
+	curl -f -s -D /dev/stderr http://localhost:8000/health/uptime || echo Failed; echo
 	curl -f -s -D /dev/stderr -X 'POST' \
 	  'http://localhost:8000/predict/' \
 	  -H 'accept: application/json' \
 	  -H 'Content-Type: application/json' \
-	  -d '{ "predictor": "test_logreg1", "payload": [[1,2,3]]}'
+	  -d '{ "predictor": "test_logreg1", "payload": [[1,2,3]]}' || echo Failed; echo
+
+
 
 local-test-curl-alternative: ## Test service with curl when using alternative model
-	bash -x -e -c "\
-		curl -f -s -D /dev/stderr http://localhost:8000/health/live ; echo; \
-		curl -f -s -D /dev/stderr http://localhost:8000/readyz; echo; \
-		curl -f -s -D /dev/stderr -X GET http://localhost:8000/health/ready/?model=test_logreg3; echo; \
-		curl -f -s -D /dev/stderr -X GET http://localhost:8000/version/?model=test_logreg3 ; echo; \
-		curl -f -s -D /dev/stderr http://localhost:8000/docs | head -c 1 | head -c 0 ; echo; \
-		curl -f -s -D /dev/stderr http://localhost:8000/health/uptime ; echo; \
-		curl -f -s -D /dev/stderr -X 'POST' \
+	curl -f -s -D /dev/stderr http://localhost:8000/health/live || echo Failed; echo;
+	curl -f -s -D /dev/stderr http://localhost:8000/readyz || echo Failed; echo;
+	curl -f -s -D /dev/stderr -X GET http://localhost:8000/health/ready/?model=test_logreg3 || echo Failed; echo;
+	curl -f -s -D /dev/stderr -X GET http://localhost:8000/version/?model=test_logreg3 || echo Failed; echo;
+	curl -f -s -D /dev/stderr http://localhost:8000/docs >/dev/null || echo Failed; echo;
+	curl -f -s -D /dev/stderr http://localhost:8000/health/uptime || echo Failed; echo;
+	curl -f -s -D /dev/stderr -X 'POST' \
 		  'http://localhost:8000/predict/' \
 		  -H 'accept: application/json' \
 		  -H 'Content-Type: application/json' \
-		  -d '{ \"predictor\": \"test_logreg3\", \"payload\": [[0,0,0],[10,10,10]]}'\
-	"
+		  -d '{ "predictor": "test_logreg3", "payload": [[0,0,0],[10,10,10]]}' || echo Failed; echo
+
 local-pytest: local-build ## Run testcases in container
 	$(DC) run --rm --name $(NAME)-test \
+		--entrypoint /service/pytest.sh \
+		$(NAME)
+
+local-pytest-alternative: local-build ## Run testcases in container
+	$(DC) run --rm --name $(NAME)-test -v $$(pwd)/alternative_model:/service/model \
 		--entrypoint /service/pytest.sh \
 		$(NAME)
 
